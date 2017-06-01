@@ -785,7 +785,7 @@ public class MyFacebook {
                 });
 
         Bundle parameters = new Bundle();
-        parameters.putString("fields", "id,name,posts.limit(100){description,name,link,caption,full_picture,reactions{name,pic},shares,from,to}");
+        parameters.putString("fields", "id,name,posts.limit(100){description,name,link,caption,full_picture,reactions.limit(100){name,pic},shares,from,to}");
         request.setParameters(parameters);
         request.executeAsync();
 
@@ -807,6 +807,23 @@ public class MyFacebook {
                     }
                 }
         ).executeAsync();*/
+    }
+
+    public void readCommentsOfPosts(){
+        GraphRequest request = GraphRequest.newMeRequest(
+                token,
+                new GraphRequest.GraphJSONObjectCallback() {
+                    @Override
+                    public void onCompleted(JSONObject object, GraphResponse response) {
+                        // Insert your code here
+                        FacebookUtils.getReactionsFromPost("10210914012100909_10210122605276233");
+                    }
+                });
+
+        Bundle parameters = new Bundle();
+        parameters.putString("fields", "id,name,posts.limit(100){description,comments{comments{from,message,likes{name,pic}},from,message,likes{name,pic}}}");
+        request.setParameters(parameters);
+        request.executeAsync();
     }
 
 
