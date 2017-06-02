@@ -3,6 +3,7 @@ package custom.sdk.com.myfacebook;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.hardware.camera2.params.Face;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -815,13 +816,23 @@ public class MyFacebook {
                 new GraphRequest.GraphJSONObjectCallback() {
                     @Override
                     public void onCompleted(JSONObject object, GraphResponse response) {
-                        // Insert your code here
-                        FacebookUtils.getReactionsFromPost("10210914012100909_10210122605276233");
+                        try {
+                            FacebookUtils.FB_POSTS_COMMENTS = object.getJSONObject("posts").getJSONArray("data");
+                            List<ArrayList<String>> values = FacebookUtils.getFirstLevelCommentsFromPostPosition(6);
+
+                            ArrayList<String> ids = values.get(3);
+                            String id = ids.get(0);
+
+                            String[] separated = id.split("~");
+                            FacebookUtils.getSecondLevelCommentsFromPostId(separated[1], token);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     }
                 });
 
         Bundle parameters = new Bundle();
-        parameters.putString("fields", "id,name,posts.limit(100){description,comments{comments{from,message,likes{name,pic}},from,message,likes{name,pic}}}");
+        parameters.putString("fields", "id,name,posts.limit(100){comments.limit(100){comments.limit(100){id,message,reactions.limit(999){name,pic},from},message,from,reactions.limit(999){name,pic}}}");
         request.setParameters(parameters);
         request.executeAsync();
     }
