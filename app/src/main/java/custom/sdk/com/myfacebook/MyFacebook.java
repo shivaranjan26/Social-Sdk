@@ -68,9 +68,7 @@ public class MyFacebook {
     public static int PIC_LIMIT = 100;
     private int friendsCount = -1;
 
-    public static List<String> permissionNeeds = Arrays.asList("public_profile",
-            "email", "user_posts", "user_photos", "user_birthday",
-            "user_friends", "read_custom_friendlists");
+
 
     CallbackManager callbackManager;
     ShareDialog dialog;
@@ -96,7 +94,7 @@ public class MyFacebook {
         FacebookSdk.sdkInitialize(context);
         AppEventsLogger.activateApp(context);
         callbackManager = CallbackManager.Factory.create();
-        LoginManager.getInstance().logInWithReadPermissions(context, MyFacebook.permissionNeeds);
+        LoginManager.getInstance().logInWithReadPermissions(context, FacebookUtils.readPermissionNeeds);
         if(!readOnly) {
             dialog = new ShareDialog(context);
             dialog.registerCallback(callbackManager, new FacebookCallback<Sharer.Result>() {
@@ -837,6 +835,148 @@ public class MyFacebook {
         request.executeAsync();
     }
 
+
+
+
+
+    public void getUserInformation(){
+        GraphRequest request = GraphRequest.newMeRequest(
+                token,
+                new GraphRequest.GraphJSONObjectCallback() {
+                    @Override
+                    public void onCompleted(JSONObject object, GraphResponse response) {
+                        try {
+                            if(object.has("about")){
+                                FaceBookConstants.FB_USER_ABOUT = object.getString("about");
+                            }
+                            if(object.has("birthday")){
+                                FaceBookConstants.FB_USER_BIRTHDAY = object.getString("birthday");
+                            }
+                            if(object.has("age_range")){
+                                FaceBookConstants.FB_USER_AGE = object.getString("age_range");
+                            }
+                            if(object.has("first_name")){
+                                FaceBookConstants.FB_USER_FIRST_NAME = object.getString("first_name");
+                            }
+                            if(object.has("last_name")){
+                                FaceBookConstants.FB_USER_LAST_NAME = object.getString("last_name");
+                            }
+                            if(object.has("middle_name")){
+                                FaceBookConstants.FB_USER_MIDDLE_NAME = object.getString("middle_name");
+                            }
+                            if(object.has("cover")){
+                                FaceBookConstants.FB_USER_COVER_PIC = object.getString("cover");
+                            }
+                            if(object.has("picture")){
+                                FaceBookConstants.FB_USER_PROFILE_PIC = object.getString("picture");
+                            }
+                            if(object.has("gender")){
+                                FaceBookConstants.FB_USER_GENDER = object.getString("gender");
+                            }
+                            if(object.has("hometown")){
+                                FaceBookConstants.FB_USER_HOMETOWN = object.getJSONObject("hometown").getString("name");
+                            }
+                            if(object.has("relationship_status")){
+                                FaceBookConstants.FB_USER_RELATIONSHIP = object.getString("relationship_status");
+                            }
+                            if(object.has("religion")){
+                                FaceBookConstants.FB_USER_RELIGION = object.getString("religion");
+                            }
+                            if(object.has("timezone")){
+                                FaceBookConstants.FB_USER_TIMEZONE = object.getString("timezone");
+                            }
+                            if(object.has("education")){
+                                FaceBookConstants.FB_USER_EDUCATION = object.getJSONArray("education");
+                            }
+                            if(object.has("languages")) {
+                                for (int i = 0; i < object.getJSONArray("languages").length(); i++) {
+                                    if(FaceBookConstants.FB_USER_KNOWN_LANGUAGES.equals("")) {
+                                        FaceBookConstants.FB_USER_KNOWN_LANGUAGES = object.getJSONArray("languages").getJSONObject(i).getString("name");
+                                    } else {
+                                        FaceBookConstants.FB_USER_KNOWN_LANGUAGES = FaceBookConstants.FB_USER_KNOWN_LANGUAGES +
+                                                "~" + object.getJSONArray("languages").getJSONObject(i).getString("name");
+                                    }
+                                }
+                            }
+                            if(object.has("work")) {
+                                FaceBookConstants.FB_USER_WORK = object.getJSONArray("work");
+                            }
+                            if(object.has("friends")) {
+                                FaceBookConstants.FB_USER_FRIENDS_COUNT = object.getJSONObject("friends").getJSONObject("summary").getString("total_count");
+                            }
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
+        Bundle parameters = new Bundle();
+        parameters.putString("fields", "id,about,birthday,age_range,education,first_name,last_name,cover,picture,gender,hometown,languages,middle_name,relationship_status,religion,timezone,work,website,friends");
+        request.setParameters(parameters);
+        request.executeAsync();
+    }
+
+    public void getFamilyInformation() {
+        GraphRequest request = GraphRequest.newMeRequest(
+                token,
+                new GraphRequest.GraphJSONObjectCallback() {
+                    @Override
+                    public void onCompleted(JSONObject object, GraphResponse response) {
+                        try {
+                            if(object.has("family")) {
+                                JSONArray familyObj = object.getJSONObject("family").getJSONArray("data");
+                                for (int i = 0; i < familyObj.length(); i++) {
+                                    FaceBookConstants.FB_USER_FAMILY.add(i, familyObj.getJSONObject(i).getString("name") + "~" +
+                                            familyObj.getJSONObject(i).getString("relationship"));
+                                }
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        FaceBookConstants.FB_USER_TIMEZONE = "Asas";
+                    }
+                });
+
+        Bundle parameters = new Bundle();
+        parameters.putString("fields", "id,name,family");
+        request.setParameters(parameters);
+        request.executeAsync();
+    }
+
+    public void getUserLikes() {
+        GraphRequest request = GraphRequest.newMeRequest(
+                token,
+                new GraphRequest.GraphJSONObjectCallback() {
+                    @Override
+                    public void onCompleted(JSONObject object, GraphResponse response) {
+                        try {
+                            if(object.has("likes")) {
+                                JSONArray likesObj = object.getJSONObject("likes").getJSONArray("data");
+                                for (int i = 0; i < likesObj.length(); i++) {
+                                    String website = "";
+
+                                    if(likesObj.getJSONObject(i).has("website")) {
+                                        website = likesObj.getJSONObject(i).getString("website");
+                                        FaceBookConstants.FB_USER_PAGES_LIKED.add(i, likesObj.getJSONObject(i).getString("name")
+                                                + "~" + website);
+                                    } else {
+                                        FaceBookConstants.FB_USER_PAGES_LIKED.add(i, likesObj.getJSONObject(i).getString("name"));
+                                    }
+
+                                }
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
+        Bundle parameters = new Bundle();
+        parameters.putString("fields", "id,name,likes.limit(9999){name,website}");
+        request.setParameters(parameters);
+        request.executeAsync();
+    }
 
 
 

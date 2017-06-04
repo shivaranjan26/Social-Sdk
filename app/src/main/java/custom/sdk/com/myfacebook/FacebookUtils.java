@@ -11,6 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -19,10 +20,25 @@ import java.util.List;
 
 public class FacebookUtils {
 
+    public static List<String> readPermissionNeeds = Arrays.asList(
+            "public_profile",
+            "email", "user_posts", "user_photos", "user_birthday",
+            "user_friends", "read_custom_friendlists", "user_about_me", "user_education_history",
+            "user_games_activity", "user_hometown", "user_likes", "user_location", "user_relationship_details",
+            "user_relationships", "user_religion_politics", "user_status", "user_tagged_places",
+            "user_videos", "user_website", "user_work_history");
+
+
+
+
     public static String FB_POST_PREV_PAGE = "";
     public static String FB_POST_NEXT_PAGE = "";
     public static JSONArray FB_POSTS = null;
     public static JSONArray FB_POSTS_COMMENTS = null;
+
+
+
+
 
     public static ArrayList<String> getPostIds(){
         ArrayList<String> postIds = new ArrayList<>();

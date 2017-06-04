@@ -37,7 +37,7 @@ public class MainActivity extends Activity implements FaceBookCallbacks, FBCusto
             public void onClick(View v) {
                 if(facebook.isLoggedIn()) {
                     //LoginManager.getInstance().logOut();
-                    facebook.readCommentsOfPosts();
+                    facebook.getUserLikes();
                 } else {
 
                     facebook.loginToFacebook(false);
@@ -49,8 +49,7 @@ public class MainActivity extends Activity implements FaceBookCallbacks, FBCusto
         b2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //facebook.shareApplicationInvite();
-                //facebook.publishLinkWithHashtagToFacebook("This Engine can display any results u look for...", "www.google.com", "#Testing");
+                LoginManager.getInstance().logOut();
             }
         });
     }
