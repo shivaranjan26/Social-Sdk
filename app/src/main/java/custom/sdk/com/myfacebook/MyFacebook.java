@@ -603,8 +603,8 @@ public class MyFacebook {
 
 
     public void shareApplicationInvite() {
-        String applicationUrl = "https://fb.me/767616443419771";
-        String imgUrl = "https://mi-od-live-s.legocdn.com/r/www/r/catalogs/-/media/catalogs/characters/lbm%20characters/primary/70900_1to1_batman_360_480.png?l.r2=1668006940";
+        String applicationUrl = "";
+        String imgUrl = "";
 
         AppInviteContent content = new AppInviteContent.Builder()
                 .setApplinkUrl(applicationUrl).setPreviewImageUrl(imgUrl)
@@ -634,7 +634,7 @@ public class MyFacebook {
 
 
 
-    public void getUserInformation(){
+    public void fetchUserInformation(){
         GraphRequest request = GraphRequest.newMeRequest(
                 token,
                 new GraphRequest.GraphJSONObjectCallback() {

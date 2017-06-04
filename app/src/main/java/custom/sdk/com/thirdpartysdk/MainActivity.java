@@ -14,12 +14,11 @@ import com.facebook.share.widget.AppInviteDialog;
 
 import org.json.JSONException;
 
-import custom.sdk.com.myfacebook.FBCustomShareCallbacks;
 import custom.sdk.com.myfacebook.FBShareCallbacks;
 import custom.sdk.com.myfacebook.FaceBookCallbacks;
 import custom.sdk.com.myfacebook.MyFacebook;
 
-public class MainActivity extends Activity implements FaceBookCallbacks, FBCustomShareCallbacks {
+public class MainActivity extends Activity implements FaceBookCallbacks, FBShareCallbacks {
 
     MyFacebook facebook;
 
@@ -27,7 +26,7 @@ public class MainActivity extends Activity implements FaceBookCallbacks, FBCusto
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        facebook = new MyFacebook(this, (FaceBookCallbacks) this, (FBCustomShareCallbacks) this);
+        facebook = new MyFacebook(this, (FaceBookCallbacks) this, (FBShareCallbacks) this);
 
         Button b = (Button) findViewById(R.id.btn);
         Button b2 = (Button) findViewById(R.id.btn2);
@@ -36,10 +35,8 @@ public class MainActivity extends Activity implements FaceBookCallbacks, FBCusto
             @Override
             public void onClick(View v) {
                 if(facebook.isLoggedIn()) {
-                    //LoginManager.getInstance().logOut();
-                    facebook.shareApplicationInvite();
-                } else {
 
+                } else {
                     facebook.loginToFacebook(false);
                 }
 
@@ -61,6 +58,20 @@ public class MainActivity extends Activity implements FaceBookCallbacks, FBCusto
         facebook.onFaceBookActivityListener(requestCode, resultCode, data);
     }
 
+    @Override
+    public void onFbShareSuccess(Sharer.Result result) {
+
+    }
+
+    @Override
+    public void onFbShareError(FacebookException error) {
+
+    }
+
+    @Override
+    public void onFbShareCancelled() {
+
+    }
 
     @Override
     public void onFbLoginSuccess(LoginResult result) {
@@ -99,21 +110,6 @@ public class MainActivity extends Activity implements FaceBookCallbacks, FBCusto
 
     @Override
     public void onFbRetrieveJsonError(JSONException e) {
-
-    }
-
-    @Override
-    public void onFbCustomShareSuccess(Sharer.Result result) {
-
-    }
-
-    @Override
-    public void onFbCustomShareError(FacebookException error) {
-
-    }
-
-    @Override
-    public void onFbCustomShareCancelled() {
 
     }
 }
