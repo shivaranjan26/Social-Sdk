@@ -1,5 +1,4 @@
 <resources>
     <string name="app_name">ThirdPartySdk</string>
-    <string name="facebook_app_id">764581910389891</string>
-    <string name="fb_login_protocol_scheme">fb764581910389891</string>
+
 </resources>

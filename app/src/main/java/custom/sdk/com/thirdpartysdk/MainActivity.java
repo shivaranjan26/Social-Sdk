@@ -17,28 +17,26 @@ import org.json.JSONException;
 import custom.sdk.com.myfacebook.FBShareCallbacks;
 import custom.sdk.com.myfacebook.FaceBookCallbacks;
 import custom.sdk.com.myfacebook.MyFacebook;
+import custom.sdk.com.mytwitter.MyTwitter;
 
-public class MainActivity extends Activity implements FaceBookCallbacks, FBShareCallbacks {
+public class MainActivity extends Activity {
 
-    MyFacebook facebook;
+    //MyFacebook facebook;
+    MyTwitter twitter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        facebook = new MyFacebook(this, (FaceBookCallbacks) this, (FBShareCallbacks) this);
 
         Button b = (Button) findViewById(R.id.btn);
         Button b2 = (Button) findViewById(R.id.btn2);
 
+        twitter = new MyTwitter(MainActivity.this);
+
         b.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(facebook.isLoggedIn()) {
-
-                } else {
-                    facebook.loginToFacebook(false);
-                }
 
             }
         });
@@ -46,70 +44,14 @@ public class MainActivity extends Activity implements FaceBookCallbacks, FBShare
         b2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                LoginManager.getInstance().logOut();
+
             }
         });
     }
 
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        facebook.onFaceBookActivityListener(requestCode, resultCode, data);
-    }
 
-    @Override
-    public void onFbShareSuccess(Sharer.Result result) {
 
-    }
 
-    @Override
-    public void onFbShareError(FacebookException error) {
 
-    }
-
-    @Override
-    public void onFbShareCancelled() {
-
-    }
-
-    @Override
-    public void onFbLoginSuccess(LoginResult result) {
-
-    }
-
-    @Override
-    public void onFbLoginError(FacebookException error) {
-
-    }
-
-    @Override
-    public void onFbLoginCancelled() {
-
-    }
-
-    @Override
-    public void onAppInviteSuccess(AppInviteDialog.Result result) {
-
-    }
-
-    @Override
-    public void onAppInviteError(FacebookException e) {
-
-    }
-
-    @Override
-    public void onFetchData() {
-
-    }
-
-    @Override
-    public void onFetchCompleted() {
-
-    }
-
-    @Override
-    public void onFbRetrieveJsonError(JSONException e) {
-
-    }
 }
