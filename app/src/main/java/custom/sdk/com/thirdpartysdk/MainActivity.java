@@ -37,7 +37,7 @@ public class MainActivity extends Activity implements FaceBookCallbacks, FBCusto
             public void onClick(View v) {
                 if(facebook.isLoggedIn()) {
                     //LoginManager.getInstance().logOut();
-                    facebook.getUserLikes();
+                    facebook.getAlbumPhotosWithComments();
                 } else {
 
                     facebook.loginToFacebook(false);
