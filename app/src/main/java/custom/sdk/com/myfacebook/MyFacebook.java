@@ -3,10 +3,8 @@ package custom.sdk.com.myfacebook;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.hardware.camera2.params.Face;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -15,7 +13,6 @@ import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
-import com.facebook.HttpMethod;
 import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
@@ -46,27 +43,50 @@ import java.util.List;
 
 public class MyFacebook {
 
+    //User Info
+    public static String FB_USER_FIRST_NAME = "";
+    public static String FB_USER_LAST_NAME = "";
+    public static String FB_USER_MIDDLE_NAME = "";
+    public static String FB_USER_ABOUT = "";
+    public static String FB_USER_BIRTHDAY = "";
+    public static String FB_USER_AGE = "";
+    public static String FB_USER_COVER_PIC = "";
+    public static String FB_USER_PROFILE_PIC = "";
+    public static String FB_USER_GENDER = "";
+    public static String FB_USER_HOMETOWN = "";
+    public static String FB_USER_KNOWN_LANGUAGES = "";
+    public static String FB_USER_RELATIONSHIP = "";
+    public static String FB_USER_RELIGION = "";
+    public static String FB_USER_TIMEZONE = "";
+    public static String FB_USER_WEBSITE = "";
+    public static String FB_USER_FRIENDS_COUNT = "";
+    public static JSONArray FB_USER_EDUCATION ;
+    public static JSONArray FB_USER_WORK;
+
+
+    //User Family Info
+    public static ArrayList<String> FB_USER_FAMILY = new ArrayList<>();
+
+    //User Page Likes
+    public static ArrayList<String> FB_USER_PAGES_LIKED = new ArrayList<>();
+
+    //User Tagged Posts
+    public JSONObject FB_TAGGED_POSTS ;
+
+    //User User Shared Posts
+    public JSONObject FB_USER_POSTS ;
+
+    //User Albums
+    public JSONObject FB_USER_ALBUM_NO_COMMENTS ;
+    public JSONObject FB_CUSTOM_DATA_JSON ;
+
+    //Custom JSON Object
+    public JSONObject FB_USER_ALBUM_WITH_COMMENTS ;
+
+
     Activity context;
 
     AccessToken token;
-
-    String faceBookName;
-    String fbEmailId;
-    String gender;
-    String fbId;
-    String birthday;
-    String location;
-    String fbProfilePicture;
-    String fbProfileCoverPicture;
-
-
-
-    private ArrayList<String> albumsId = new ArrayList<String>();
-    private ArrayList<String> albumPhotos = new ArrayList<String>();
-    private ArrayList<String> friendsList = new ArrayList<String>();
-
-    public static int PIC_LIMIT = 100;
-    private int friendsCount = -1;
 
 
 
@@ -76,6 +96,14 @@ public class MyFacebook {
     FaceBookCallbacks callbacks;
     FBCustomShareCallbacks customCallbacks;
     FBShareCallbacks shareCallbacks;
+
+    public static List<String> readPermissionNeeds = Arrays.asList(
+            "public_profile",
+            "email", "user_posts", "user_photos", "user_birthday",
+            "user_friends", "read_custom_friendlists", "user_about_me", "user_education_history",
+            "user_games_activity", "user_hometown", "user_likes", "user_location", "user_relationship_details",
+            "user_relationships", "user_religion_politics", "user_status", "user_tagged_places",
+            "user_videos", "user_website", "user_work_history");
 
 
     public MyFacebook(Activity ctContext, FaceBookCallbacks helper, FBShareCallbacks shareCallback) {
@@ -94,7 +122,7 @@ public class MyFacebook {
         FacebookSdk.sdkInitialize(context);
         AppEventsLogger.activateApp(context);
         callbackManager = CallbackManager.Factory.create();
-        LoginManager.getInstance().logInWithReadPermissions(context, FacebookUtils.readPermissionNeeds);
+        LoginManager.getInstance().logInWithReadPermissions(context, readPermissionNeeds);
         if(!readOnly) {
             dialog = new ShareDialog(context);
             dialog.registerCallback(callbackManager, new FacebookCallback<Sharer.Result>() {
@@ -671,9 +699,12 @@ public class MyFacebook {
                             if(object.has("friends")) {
                                 FB_USER_FRIENDS_COUNT = object.getJSONObject("friends").getJSONObject("summary").getString("total_count");
                             }
-
+                            if(object.has("website")) {
+                                FB_USER_WEBSITE = object.getJSONObject("website").getString("name");
+                            }
+                            callbacks.onFetchCompleted();
                         } catch (JSONException e) {
-                            e.printStackTrace();
+                            callbacks.onFbRetrieveJsonError(e);
                         }
                     }
                 });
@@ -681,6 +712,7 @@ public class MyFacebook {
         Bundle parameters = new Bundle();
         parameters.putString("fields", "id,about,birthday,age_range,education,first_name,last_name,cover,picture,gender,hometown,languages,middle_name,relationship_status,religion,timezone,work,website,friends");
         request.setParameters(parameters);
+        callbacks.onFetchData();
         request.executeAsync();
     }
 
@@ -698,16 +730,17 @@ public class MyFacebook {
                                             familyObj.getJSONObject(i).getString("relationship"));
                                 }
                             }
+                            callbacks.onFetchCompleted();
                         } catch (JSONException e) {
-                            e.printStackTrace();
+                            callbacks.onFbRetrieveJsonError(e);
                         }
-                        FB_USER_TIMEZONE = "Asas";
                     }
                 });
 
         Bundle parameters = new Bundle();
         parameters.putString("fields", "id,name,family");
         request.setParameters(parameters);
+        callbacks.onFetchData();
         request.executeAsync();
     }
 
@@ -730,11 +763,11 @@ public class MyFacebook {
                                     } else {
                                         FB_USER_PAGES_LIKED.add(i, likesObj.getJSONObject(i).getString("name"));
                                     }
-
                                 }
                             }
+                            callbacks.onFetchCompleted();
                         } catch (JSONException e) {
-                            e.printStackTrace();
+                            callbacks.onFbRetrieveJsonError(e);
                         }
                     }
                 });
@@ -742,6 +775,7 @@ public class MyFacebook {
         Bundle parameters = new Bundle();
         parameters.putString("fields", "id,name,likes.limit(9999){name,website}");
         request.setParameters(parameters);
+        callbacks.onFetchData();
         request.executeAsync();
     }
 
@@ -753,8 +787,9 @@ public class MyFacebook {
                     public void onCompleted(JSONObject object, GraphResponse response) {
                         try {
                             FB_TAGGED_POSTS = object.getJSONObject("tagged");
+                            callbacks.onFetchCompleted();
                         } catch (JSONException e) {
-                            e.printStackTrace();
+                            callbacks.onFbRetrieveJsonError(e);
                         }
                     }
                 });
@@ -762,6 +797,7 @@ public class MyFacebook {
         Bundle parameters = new Bundle();
         parameters.putString("fields", "id,name,tagged.limit(9999){name,from,message,story,picture,description,link,reactions.limit(9999){name,pic},comments.limit(9999){message,from,reactions.limit(9999){name,pic},comments.limit(9999){message,from,reactions.limit(9999){name,pic}}}}");
         request.setParameters(parameters);
+        callbacks.onFetchData();
         request.executeAsync();
     }
 
@@ -773,8 +809,9 @@ public class MyFacebook {
                     public void onCompleted(JSONObject object, GraphResponse response) {
                         try {
                             FB_USER_POSTS = object.getJSONObject("posts");
+                            callbacks.onFetchCompleted();
                         } catch (JSONException e) {
-                            e.printStackTrace();
+                            callbacks.onFbRetrieveJsonError(e);
                         }
                     }
                 });
@@ -782,6 +819,7 @@ public class MyFacebook {
         Bundle parameters = new Bundle();
         parameters.putString("fields", "id,name,posts.limit(9999){name,description,caption,link,picture,reactions.limit(9999){name,pic},message,story,comments.limit(9999){from,message,reactions.limit(9999){name,pic},comments.limit(9999){from,message,reactions.limit(9999){name,pic}}}}");
         request.setParameters(parameters);
+        callbacks.onFetchData();
         request.executeAsync();
     }
 
@@ -793,8 +831,9 @@ public class MyFacebook {
                     public void onCompleted(JSONObject object, GraphResponse response) {
                         try {
                             FB_USER_ALBUM_NO_COMMENTS = object.getJSONObject("albums");
+                            callbacks.onFetchCompleted();
                         } catch (JSONException e) {
-                            e.printStackTrace();
+                            callbacks.onFbRetrieveJsonError(e);
                         }
                     }
                 });
@@ -802,6 +841,7 @@ public class MyFacebook {
         Bundle parameters = new Bundle();
         parameters.putString("fields", "id,name,albums.limit(9999){description,name,place,photos{name,picture,reactions.limit(9999){name}},reactions.limit(9999){name}}");
         request.setParameters(parameters);
+        callbacks.onFetchData();
         request.executeAsync();
     }
 
@@ -813,8 +853,9 @@ public class MyFacebook {
                     public void onCompleted(JSONObject object, GraphResponse response) {
                         try {
                             FB_USER_ALBUM_WITH_COMMENTS = object.getJSONObject("albums");
+                            callbacks.onFetchCompleted();
                         } catch (JSONException e) {
-                            e.printStackTrace();
+                            callbacks.onFbRetrieveJsonError(e);
                         }
                     }
                 });
@@ -822,51 +863,29 @@ public class MyFacebook {
         Bundle parameters = new Bundle();
         parameters.putString("fields", "id,name,albums.limit(9999){description,name,place,photos{name,picture,reactions.limit(9999){name},comments.limit(9999){from,message,reactions.limit(9999){name}}},reactions.limit(9999){name},comments.limit(9999){from,message,reactions.limit(9999){name}}}");
         request.setParameters(parameters);
+        callbacks.onFetchData();
+        request.executeAsync();
+    }
+
+    public void getCustomJSONObject(String fields) {
+        GraphRequest request = GraphRequest.newMeRequest(
+                token,
+                new GraphRequest.GraphJSONObjectCallback() {
+                    @Override
+                    public void onCompleted(JSONObject object, GraphResponse response) {
+                        FB_CUSTOM_DATA_JSON = object;
+                        callbacks.onFetchCompleted();
+                    }
+                });
+
+        Bundle parameters = new Bundle();
+        parameters.putString("fields", fields);
+        request.setParameters(parameters);
+        callbacks.onFetchData();
         request.executeAsync();
     }
 
 
-
-
-
-
-
-    //User Info
-    public static String FB_USER_FIRST_NAME = "";
-    public static String FB_USER_LAST_NAME = "";
-    public static String FB_USER_MIDDLE_NAME = "";
-    public static String FB_USER_ABOUT = "";
-    public static String FB_USER_BIRTHDAY = "";
-    public static String FB_USER_AGE = "";
-    public static String FB_USER_COVER_PIC = "";
-    public static String FB_USER_PROFILE_PIC = "";
-    public static String FB_USER_GENDER = "";
-    public static String FB_USER_HOMETOWN = "";
-    public static String FB_USER_KNOWN_LANGUAGES = "";
-    public static String FB_USER_RELATIONSHIP = "";
-    public static String FB_USER_RELIGION = "";
-    public static String FB_USER_TIMEZONE = "";
-    public static String FB_USER_WEBSITE = "";
-    public static String FB_USER_FRIENDS_COUNT = "";
-    public static JSONArray FB_USER_EDUCATION ;
-    public static JSONArray FB_USER_WORK;
-
-
-    //User Family Info
-    public static ArrayList<String> FB_USER_FAMILY = new ArrayList<>();
-
-    //User Page Likes
-    public static ArrayList<String> FB_USER_PAGES_LIKED = new ArrayList<>();
-
-    //User Tagged Posts
-    public static JSONObject FB_TAGGED_POSTS ;
-
-    //User User Shared Posts
-    public static JSONObject FB_USER_POSTS ;
-
-    //User Albums
-    public static JSONObject FB_USER_ALBUM_NO_COMMENTS ;
-    public static JSONObject FB_USER_ALBUM_WITH_COMMENTS ;
 
     public void onFaceBookActivityListener(int requestCode, int resultCode, Intent data) {
         if(callbackManager != null) {

@@ -20,6 +20,7 @@ public interface FaceBookCallbacks {
     public void onFbLoginCancelled();
     public void onAppInviteSuccess(AppInviteDialog.Result result);
     public void onAppInviteError(FacebookException e);
+    public void onFetchData();
     public void onFetchCompleted();
     public void onFbRetrieveJsonError(JSONException e);
 

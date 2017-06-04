@@ -37,7 +37,7 @@ public class MainActivity extends Activity implements FaceBookCallbacks, FBCusto
             public void onClick(View v) {
                 if(facebook.isLoggedIn()) {
                     //LoginManager.getInstance().logOut();
-                    facebook.getAlbumPhotosWithComments();
+                    facebook.shareApplicationInvite();
                 } else {
 
                     facebook.loginToFacebook(false);
@@ -84,6 +84,11 @@ public class MainActivity extends Activity implements FaceBookCallbacks, FBCusto
 
     @Override
     public void onAppInviteError(FacebookException e) {
+
+    }
+
+    @Override
+    public void onFetchData() {
 
     }
 
