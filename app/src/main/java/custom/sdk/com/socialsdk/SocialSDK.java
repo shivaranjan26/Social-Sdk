@@ -17,10 +17,6 @@ import com.facebook.login.LoginResult;
 import com.facebook.share.ShareApi;
 import com.facebook.share.Sharer;
 import com.facebook.share.model.ShareContent;
-import com.facebook.share.model.ShareLinkContent;
-import com.facebook.share.model.ShareMediaContent;
-import com.facebook.share.model.SharePhotoContent;
-import com.facebook.share.model.ShareVideoContent;
 import com.facebook.share.widget.ShareDialog;
 
 import org.json.JSONArray;
@@ -28,14 +24,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import custom.sdk.com.myfacebook.FaceBookUtils;
 import custom.sdk.com.myfacebook.model.AlbumPhotos;
 import custom.sdk.com.myfacebook.model.EmploymentDetails;
 import custom.sdk.com.myfacebook.model.FBFirstLevelComments;
 import custom.sdk.com.myfacebook.model.FBPostDetails;
-import custom.sdk.com.myfacebook.model.FBSecondLevelComments;
 import custom.sdk.com.myfacebook.model.FacebookUser;
 
 /**
