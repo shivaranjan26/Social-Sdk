@@ -8,6 +8,7 @@ import com.facebook.share.Sharer;
 import com.facebook.share.widget.AppInviteDialog;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Created by Shiva on 24-05-2017.
@@ -22,6 +23,8 @@ public interface FaceBookCallbacks {
     public void onAppInviteError(FacebookException e);
     public void onFetchData();
     public void onFetchCompleted();
-    public void onFbRetrieveJsonError(JSONException e);
 
+    public void onPostsFetched(JSONObject obj);
+
+    public void onFbRetrieveJsonError(JSONException e);
 }

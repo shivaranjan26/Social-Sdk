@@ -37,6 +37,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import custom.sdk.com.myfacebook.model.EmploymentDetails;
+import custom.sdk.com.myfacebook.model.FacebookUser;
+
 /**
  * Created by Shiva on 23-05-2017.
  */
@@ -97,6 +100,8 @@ public class MyFacebook {
     FBCustomShareCallbacks customCallbacks;
     FBShareCallbacks shareCallbacks;
 
+    FBActivity fbActivity;
+
     public static List<String> readPermissionNeeds = Arrays.asList(
             "public_profile",
             "email", "user_posts", "user_photos", "user_birthday",
@@ -122,7 +127,7 @@ public class MyFacebook {
         FacebookSdk.sdkInitialize(context);
         AppEventsLogger.activateApp(context);
         callbackManager = CallbackManager.Factory.create();
-        LoginManager.getInstance().logInWithReadPermissions(context, readPermissionNeeds);
+
         if(!readOnly) {
             dialog = new ShareDialog(context);
             dialog.registerCallback(callbackManager, new FacebookCallback<Sharer.Result>() {
@@ -143,6 +148,8 @@ public class MyFacebook {
             });
             LoginManager.getInstance().logInWithPublishPermissions(context, Arrays.asList("publish_actions"));
         }
+
+        LoginManager.getInstance().logInWithReadPermissions(context, readPermissionNeeds);
 
         LoginManager.getInstance().registerCallback(callbackManager,
                 new FacebookCallback<LoginResult>()
@@ -634,7 +641,7 @@ public class MyFacebook {
 
 
 
-    public void fetchUserInformation(){
+    public void fetchUserInformation(final FacebookUser user){
         GraphRequest request = GraphRequest.newMeRequest(
                 token,
                 new GraphRequest.GraphJSONObjectCallback() {
@@ -642,65 +649,88 @@ public class MyFacebook {
                     public void onCompleted(JSONObject object, GraphResponse response) {
                         try {
                             if(object.has("about")){
-                                FB_USER_ABOUT = object.getString("about");
+                                user.setAboutMe(object.getString("about"));
                             }
                             if(object.has("birthday")){
-                                FB_USER_BIRTHDAY = object.getString("birthday");
+                                user.setBirthday(object.getString("birthday"));
                             }
                             if(object.has("age_range")){
-                                FB_USER_AGE = object.getString("age_range");
+                                user.setAge(object.getString("age_range"));
                             }
                             if(object.has("first_name")){
-                                FB_USER_FIRST_NAME = object.getString("first_name");
+                                user.setFirstName(object.getString("first_name"));
                             }
                             if(object.has("last_name")){
-                                FB_USER_LAST_NAME = object.getString("last_name");
+                                user.setLastName(object.getString("last_name"));
                             }
                             if(object.has("middle_name")){
-                                FB_USER_MIDDLE_NAME = object.getString("middle_name");
+                                user.setMiddleName(object.getString("middle_name"));
                             }
                             if(object.has("cover")){
-                                FB_USER_COVER_PIC = object.getString("cover");
+                                user.setCoverPicUrl(object.getString("cover"));
                             }
                             if(object.has("picture")){
-                                FB_USER_PROFILE_PIC = object.getString("picture");
+                                user.setProfilePicUrl(object.getString("picture"));
                             }
                             if(object.has("gender")){
-                                FB_USER_GENDER = object.getString("gender");
+                                user.setGender(object.getString("gender"));
                             }
                             if(object.has("hometown")){
-                                FB_USER_HOMETOWN = object.getJSONObject("hometown").getString("name");
+                                user.setHomeTown(object.getJSONObject("hometown").getString("name"));
                             }
                             if(object.has("relationship_status")){
-                                FB_USER_RELATIONSHIP = object.getString("relationship_status");
+                                user.setRelationshipStatus(object.getString("relationship_status"));
                             }
                             if(object.has("religion")){
-                                FB_USER_RELIGION = object.getString("religion");
+                                user.setReligion(object.getString("religion"));
                             }
                             if(object.has("timezone")){
-                                FB_USER_TIMEZONE = object.getString("timezone");
+                                user.setTimeZone(object.getString("timezone"));
                             }
                             if(object.has("education")){
-                                FB_USER_EDUCATION = object.getJSONArray("education");
+                                ArrayList<String> education = new ArrayList<String>();
+                                for (int i = 0; i < object.getJSONArray("education").length(); i++) {
+                                    JSONObject edu = object.getJSONArray("education").getJSONObject(i);
+                                    education.add(i, edu.getString("type") + "~" + edu.getJSONObject("school").getString("name"));
+                                }
+                                user.setEducation(education);
                             }
                             if(object.has("languages")) {
+                                ArrayList<String> languages = new ArrayList<String>();
                                 for (int i = 0; i < object.getJSONArray("languages").length(); i++) {
-                                    if(FB_USER_KNOWN_LANGUAGES.equals("")) {
-                                        FB_USER_KNOWN_LANGUAGES = object.getJSONArray("languages").getJSONObject(i).getString("name");
-                                    } else {
-                                        FB_USER_KNOWN_LANGUAGES = FB_USER_KNOWN_LANGUAGES +
-                                                "~" + object.getJSONArray("languages").getJSONObject(i).getString("name");
-                                    }
+                                    languages.add(object.getJSONArray("languages").getJSONObject(i).getString("name"));
                                 }
+                                user.setLanguages(languages);
                             }
                             if(object.has("work")) {
-                                FB_USER_WORK = object.getJSONArray("work");
+                                ArrayList<EmploymentDetails> details = new ArrayList<EmploymentDetails>();
+                                for (int i = 0; i < object.getJSONArray("work").length(); i++) {
+                                    JSONObject emp = object.getJSONArray("work").getJSONObject(i);
+                                    EmploymentDetails empDetail = new EmploymentDetails();
+                                    if(emp.has("employer")) {
+                                        empDetail.setEmployerName(emp.getJSONObject("employer").getString("name"));
+                                    }
+                                    if(emp.has("location")) {
+                                        empDetail.setEmployerLocation(emp.getJSONObject("location").getString("name"));
+                                    }
+                                    if(emp.has("position")) {
+                                        empDetail.setDesignation(emp.getJSONObject("position").getString("name"));
+                                    }
+                                    if(emp.has("start_date")) {
+                                        empDetail.setStartDate(emp.getString("start_date"));
+                                    }
+                                    if(emp.has("end_date")) {
+                                        empDetail.setEndDate(emp.getString("end_date"));
+                                    }
+                                    details.add(i, empDetail);
+                                }
+                                user.setWorkDetails(details);
                             }
                             if(object.has("friends")) {
-                                FB_USER_FRIENDS_COUNT = object.getJSONObject("friends").getJSONObject("summary").getString("total_count");
+                                user.setFriendsCount(object.getJSONObject("friends").getJSONObject("summary").getString("total_count"));
                             }
                             if(object.has("website")) {
-                                FB_USER_WEBSITE = object.getJSONObject("website").getString("name");
+                                user.setWebsite(object.getJSONObject("website").getString("name"));
                             }
                             callbacks.onFetchCompleted();
                         } catch (JSONException e) {
@@ -716,7 +746,7 @@ public class MyFacebook {
         request.executeAsync();
     }
 
-    public void getFamilyInformation() {
+    public void getFamilyInformation(final FacebookUser user) {
         GraphRequest request = GraphRequest.newMeRequest(
                 token,
                 new GraphRequest.GraphJSONObjectCallback() {
@@ -724,11 +754,13 @@ public class MyFacebook {
                     public void onCompleted(JSONObject object, GraphResponse response) {
                         try {
                             if(object.has("family")) {
+                                ArrayList<String> family = new ArrayList<String>();
                                 JSONArray familyObj = object.getJSONObject("family").getJSONArray("data");
                                 for (int i = 0; i < familyObj.length(); i++) {
-                                    FB_USER_FAMILY.add(i, familyObj.getJSONObject(i).getString("name") + "~" +
+                                    family.add(i, familyObj.getJSONObject(i).getString("name") + "~" +
                                             familyObj.getJSONObject(i).getString("relationship"));
                                 }
+                                user.setFamilyDetails(family);
                             }
                             callbacks.onFetchCompleted();
                         } catch (JSONException e) {
@@ -744,7 +776,7 @@ public class MyFacebook {
         request.executeAsync();
     }
 
-    public void getUserLikedPages() {
+    public void getUserLikedPages(final FacebookUser user) {
         GraphRequest request = GraphRequest.newMeRequest(
                 token,
                 new GraphRequest.GraphJSONObjectCallback() {
@@ -752,18 +784,20 @@ public class MyFacebook {
                     public void onCompleted(JSONObject object, GraphResponse response) {
                         try {
                             if(object.has("likes")) {
+                                ArrayList<String> pages = new ArrayList<String>();
                                 JSONArray likesObj = object.getJSONObject("likes").getJSONArray("data");
                                 for (int i = 0; i < likesObj.length(); i++) {
                                     String website = "";
 
                                     if(likesObj.getJSONObject(i).has("website")) {
                                         website = likesObj.getJSONObject(i).getString("website");
-                                        FB_USER_PAGES_LIKED.add(i, likesObj.getJSONObject(i).getString("name")
+                                        pages.add(i, likesObj.getJSONObject(i).getString("name")
                                                 + "~" + website);
                                     } else {
-                                        FB_USER_PAGES_LIKED.add(i, likesObj.getJSONObject(i).getString("name"));
+                                        pages.add(i, likesObj.getJSONObject(i).getString("name"));
                                     }
                                 }
+                                user.setLikedPages(pages);
                             }
                             callbacks.onFetchCompleted();
                         } catch (JSONException e) {
@@ -786,8 +820,8 @@ public class MyFacebook {
                     @Override
                     public void onCompleted(JSONObject object, GraphResponse response) {
                         try {
-                            FB_TAGGED_POSTS = object.getJSONObject("tagged");
-                            callbacks.onFetchCompleted();
+                            fbActivity.setTaggedPosts(object.getJSONObject("tagged"));
+                            callbacks.onPostsFetched(object.getJSONObject("tagged"));
                         } catch (JSONException e) {
                             callbacks.onFbRetrieveJsonError(e);
                         }
