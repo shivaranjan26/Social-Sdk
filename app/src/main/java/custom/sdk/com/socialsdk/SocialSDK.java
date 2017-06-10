@@ -14,14 +14,24 @@ import com.facebook.GraphResponse;
 import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
+import com.facebook.share.ShareApi;
+import com.facebook.share.Sharer;
+import com.facebook.share.model.ShareContent;
+import com.facebook.share.model.ShareLinkContent;
+import com.facebook.share.model.ShareMediaContent;
+import com.facebook.share.model.SharePhotoContent;
+import com.facebook.share.model.ShareVideoContent;
+import com.facebook.share.widget.ShareDialog;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import custom.sdk.com.myfacebook.FaceBookUtils;
+import custom.sdk.com.myfacebook.model.AlbumPhotos;
 import custom.sdk.com.myfacebook.model.EmploymentDetails;
 import custom.sdk.com.myfacebook.model.FBFirstLevelComments;
 import custom.sdk.com.myfacebook.model.FBPostDetails;
@@ -51,8 +61,6 @@ public class SocialSDK {
         AppEventsLogger.activateApp(context);
         callbackManager = CallbackManager.Factory.create();
 
-        LoginManager.getInstance().logInWithReadPermissions(context, SocialSDKUtils.readPermissionNeeds);
-
         LoginManager.getInstance().registerCallback(callbackManager,
                 new FacebookCallback<LoginResult>()
                 {
@@ -75,6 +83,28 @@ public class SocialSDK {
                         callbacks.onFacebookLogin(null, false, exception);
                     }
                 });
+
+        if(!readlOnly){
+            dialog = new ShareDialog(context);
+            dialog.registerCallback(callbackManager, new FacebookCallback<Sharer.Result>() {
+                @Override
+                public void onSuccess(Sharer.Result result) {
+                    callbacks.onContentPosted(result);
+                }
+
+                @Override
+                public void onCancel() {
+                    callbacks.onContentCanceled();
+                }
+
+                @Override
+                public void onError(FacebookException error) {
+                    callbacks.onContentPostingError(error);
+                }
+            });
+            LoginManager.getInstance().logInWithPublishPermissions(context, SocialSDKUtils.writePermissionNeeds);
+        }
+        LoginManager.getInstance().logInWithReadPermissions(context, SocialSDKUtils.readPermissionNeeds);
     }
 
     public AccessToken getFacebookAccessToken(){
@@ -372,7 +402,7 @@ public class SocialSDK {
 
                                 postDetails.add(i, posts);
                             }
-                            callbacks.onTaggedPostsFetched(postDetails);
+                            callbacks.onUserPostsFetched(postDetails);
                         } catch (JSONException e) {
                             callbacks.onFetchErrors(e);
                         }
@@ -385,10 +415,91 @@ public class SocialSDK {
         request.executeAsync();
     }
 
+    public void fetchAlbumPhotos() {
+        GraphRequest request = GraphRequest.newMeRequest(
+                fbAccessToken,
+                new GraphRequest.GraphJSONObjectCallback() {
+                    @Override
+                    public void onCompleted(JSONObject object, GraphResponse response) {
+                        try {
+                            ArrayList<AlbumPhotos> albumPhotos = new ArrayList<AlbumPhotos>();
+                            for (int i = 0; i < object.getJSONObject("albums").getJSONArray("data").length(); i++) {
+                                AlbumPhotos photos = new AlbumPhotos();
+                                JSONArray obj = object.getJSONObject("albums").getJSONArray("data");
+                                photos.setAlbumName(obj.getJSONObject(i).getString("name"));
+                                ArrayList<String> pics = new ArrayList<String>();
+
+                                if(obj.getJSONObject(i).has("photos")) {
+                                    JSONArray picObj = obj.getJSONObject(i).getJSONObject("photos").getJSONArray("data");
+                                    for (int j = 0; j < picObj.length(); j++) {
+                                        pics.add(j, picObj.getJSONObject(j).getString("picture"));
+                                    }
+                                    photos.setAlbumPhotos(pics);
+                                }
+
+                                albumPhotos.add(i, photos);
+                            }
+                            callbacks.onUserPhotosFetched(albumPhotos);
+                        } catch (JSONException e) {
+                            callbacks.onFetchErrors(e);
+                        }
+                    }
+                });
+
+        Bundle parameters = new Bundle();
+        parameters.putString("fields", "id,name,albums.limit(9999){description,name,place,photos{name,picture,reactions.limit(9999){name},comments.limit(9999){from,message,reactions.limit(9999){name}}},reactions.limit(9999){name},comments.limit(9999){from,message,reactions.limit(9999){name}}}");
+        request.setParameters(parameters);
+        request.executeAsync();
+    }
+
+    public void getFBCustomJSONResponse(String fields) {
+        GraphRequest request = GraphRequest.newMeRequest(
+                fbAccessToken,
+                new GraphRequest.GraphJSONObjectCallback() {
+                    @Override
+                    public void onCompleted(JSONObject object, GraphResponse response) {
+                        callbacks.onFetchCustomJSONResponse(object);
+                    }
+                });
+
+        Bundle parameters = new Bundle();
+        parameters.putString("fields", fields);
+        request.setParameters(parameters);
+        request.executeAsync();
+    }
+
+    ShareDialog dialog;
+    public void shareToFacebookPage(ShareContent content, boolean isCustom){
+        if(isCustom) {
+            customShareToFacebookWall(content);
+        } else {
+            shareUsingFacebookInterface(content);
+        }
+    }
 
 
+    private void shareUsingFacebookInterface(ShareContent content) {
+        dialog.show(content);
+    }
 
+    private void customShareToFacebookWall(ShareContent content) {
+        ShareApi.share(content, new FacebookCallback<Sharer.Result>() {
+            @Override
+            public void onSuccess(Sharer.Result result) {
+                callbacks.onContentPosted(result);
+            }
 
+            @Override
+            public void onCancel() {
+                callbacks.onContentCanceled();
+            }
+
+            @Override
+            public void onError(FacebookException error) {
+                callbacks.onContentPostingError(error);
+            }
+        });
+    }
 
 
 

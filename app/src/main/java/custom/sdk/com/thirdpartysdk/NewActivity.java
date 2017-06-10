@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import custom.sdk.com.myfacebook.FaceBookUtils;
 import custom.sdk.com.myfacebook.model.FBPostDetails;
 import custom.sdk.com.myfacebook.model.FacebookUser;
 import custom.sdk.com.socialsdk.SocialSDK;
@@ -32,7 +33,7 @@ public class NewActivity extends SocialSDKActivity {
             @Override
             public void onClick(View v) {
                 if(socialSDK.isLoggedInToFacebook()) {
-                    socialSDK.fetchFBUserSharedPosts();
+                    socialSDK.fetchAlbumPhotos();
                 } else {
                     socialSDK.LoginToFaceBook(true);
                 }
@@ -43,7 +44,11 @@ public class NewActivity extends SocialSDKActivity {
         b2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                if(socialSDK.isLoggedInToFacebook()) {
+                    socialSDK.shareToFacebookPage(FaceBookUtils.getShareLinkContent("quote", "www.android.com", "#tag"), false);
+                } else {
+                    socialSDK.LoginToFaceBook(false);
+                }
             }
         });
     }

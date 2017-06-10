@@ -17,4 +17,6 @@ public class SocialSDKUtils {
             "user_games_activity", "user_hometown", "user_likes", "user_location", "user_relationship_details",
             "user_relationships", "user_religion_politics", "user_status", "user_tagged_places",
             "user_videos", "user_website", "user_work_history");
+
+    public static List<String> writePermissionNeeds = Arrays.asList("publish_actions");
 }
